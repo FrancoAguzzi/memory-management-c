@@ -54,6 +54,8 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < 10; i++) {
         // 10 por enquanto
         tabela = FuncaoConstrutora(&tabela, CriarNumeroRandom(param1), CriarNumeroRandom(param2), CriarNumeroRandom(param3));
+        tabela->visualizar;
+        // mostrar paginas livres
     }
 
     FuncaoConstrutora(&tabela, param1, param2, param3);
