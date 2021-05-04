@@ -5,7 +5,7 @@
 
 long counter = 0;
 long counterProcessId = 0;
-#define NUMERO_PROCESSOS 10;
+#define NUMERO_PROCESSOS 10
 
 typedef struct
 {
@@ -41,6 +41,7 @@ void FuncaoConstrutoraGerenciadorDeMemoria(GerenciadorDeMemoria *GerenciadorDeMe
     GerenciadorDeMemoria->tamPagina = tamPagina;
     GerenciadorDeMemoria->tamMemoria = tamMemoria;
     GerenciadorDeMemoria->tamMaximoProcesso = tamMaximoProcesso;
+    GerenciadorDeMemoria->memoria = (Byte *)malloc(tamMemoria * sizeof(Byte));
 }
 
 int CriarNumeroRandom(int max)
@@ -50,7 +51,7 @@ int CriarNumeroRandom(int max)
 
 int LinkarTabelaComMemoria(TabelaPaginas* tabela) {
     for (int i = 0; i < sizeof(tabela->paginas); i++) {
-        for (int j = 0; j < sizeof(gerenciadorDeMemoria.memoria); j++) {
+        for (int j = 0; j < gerenciadorDeMemoria.tamMemoria; j++) {
             if (!gerenciadorDeMemoria.memoria[j].estaCheio) {
                 tabela->paginas[i] = j;
             }
@@ -61,8 +62,8 @@ int LinkarTabelaComMemoria(TabelaPaginas* tabela) {
 TabelaPaginas FuncaoConstrutoraTabela(int tProcesso, int tPagina, int idProcesso)
 {
     TabelaPaginas Objeto;
-    // int numeroPaginas = ceil((float)tProcesso / (float)tPagina);
-    Objeto.paginas = (int *)malloc(tProcesso * sizeof(int));
+    int numeroPaginas = ceil((float)tProcesso / (float)tPagina);
+    Objeto.paginas = (int *)malloc(numeroPaginas * sizeof(int));
     Objeto.idTabela = counter;
     Objeto.idProcesso = idProcesso;
     counter++;
@@ -91,11 +92,6 @@ int AdicionarTabela(TabelaPaginas tabela)
             gerenciadorDeMemoria.tabelas[i] = tabela;
         }
     }
-}
-
-void CriarMemoria(int tamanhoMemoria)
-{
-    gerenciadorDeMemoria.memoria = (Byte *)malloc(tamanhoMemoria * sizeof(Byte));
 }
 
 int CriarPaginas(int numeroPaginas, int tamanhoPaginas)
@@ -129,22 +125,24 @@ int DestruirProcesso(long processId){
 }
 
 void MostrarMemoriaLivre() {
-    for (int i = 0; i < sizeof(gerenciadorDeMemoria.memoria); i++) {
+    printf("\nMemória livre:\n");
+    for (int i = 0; i < gerenciadorDeMemoria.tamMemoria; i++) {
         if (!gerenciadorDeMemoria.memoria[i].estaCheio) {
-            printf("|_| %d", i);
+            printf("|_| %d\n", i);
         }
     }
+    printf("\n");
 }
 
 int CriarProcesso(int tamanhoProcesso, int processId)
 {
     // RAISE EXCEPTION: tamanhoProcesso maior que tamanho maximo
-    printf("Criando processo %d\n", processId);
+    printf("Criando processo %d...\n", processId);
     TabelaPaginas tabela = FuncaoConstrutoraTabela(tamanhoProcesso, gerenciadorDeMemoria.tamPagina, processId);
     LinkarTabelaComMemoria(&tabela);
     PopularPaginasTabela(&tabela);
     AdicionarTabela(tabela);
-    printf("Tamanho do processo %d: %d\n", processId, tamanhoProcesso);
+    printf("Tamanho do processo %d: %d bytes\n", processId, tamanhoProcesso);
     MostrarMemoriaLivre();
 }
 
@@ -163,14 +161,12 @@ int main(int argc, char *argv[])
 
     FuncaoConstrutoraGerenciadorDeMemoria(&gerenciadorDeMemoria, tamPagina,
                                           tamMemoria, tamMaxProcesso);
-
-    CriarMemoria(tamMemoria);
     CriarPaginas(numeroPaginas, tamPagina);
 
     for (int i = 0; i < NUMERO_PROCESSOS; i++)
     {
         randTamanhoProcesso = CriarNumeroRandom(tamMaxProcesso * 2);
-        CriarProcesso(randTamanhoProcesso, i);
+        CriarProcesso(randTamanhoProcesso, i + 1);
     }
 
     // VisualizarMemoria(tabela);
