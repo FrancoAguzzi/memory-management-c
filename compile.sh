@@ -1,0 +1,1 @@
+gcc tabela_paginas.c -lm -o main && ./main
