@@ -104,7 +104,7 @@ int CriarPaginas(int numeroPaginas, int tamanhoPaginas)
 
 int AlocarEspaco(char a, int endereco)
 {
-    gerenciadorDeMemoria.memoria[endereco] = a;
+    gerenciadorDeMemoria.memoria[endereco].valor = a;
 }
 
 int DestruirProcesso(int processId){
@@ -112,7 +112,11 @@ int DestruirProcesso(int processId){
 }
 
 void MostrarMemoriaLivre() {
-    // printa memoria livre
+    for (int i = 0; i < gerenciadorDeMemoria.memoria; i++) {
+        if (!gerenciadorDeMemoria.memoria[i].estaCheio) {
+            printf("|_| %d", i);
+        }
+    }
 }
 
 int CriarProcesso(int tamanhoProcesso, int processId)
