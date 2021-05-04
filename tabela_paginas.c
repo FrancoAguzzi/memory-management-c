@@ -1,5 +1,6 @@
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 long counter = 0;
 long counterProcessId = 0;
@@ -12,6 +13,12 @@ typedef struct
     int *paginas;
 } TabelaPaginas;
 
+typedef struct 
+{
+    bool estaCheio;
+    char valor;
+} Byte;
+
 typedef struct
 {
     TabelaPaginas *tabelas;
@@ -19,53 +26,55 @@ typedef struct
     int tamMemoria;
     int tamPagina;
     int *paginas;
-    char *memoria;
+    Byte *memoria;
 } GerenciadorDeMemoria;
 
 GerenciadorDeMemoria gerenciadorDeMemoria;
-
-// typedef struct LINKED_LIST
-// {
-//     TabelaPaginas Atual;
-//     struct LINKED_LIST *Prox;
-// };
-
-// struct LINKED_LIST *memoria;
 
 GerenciadorDeMemoria *FuncaoConstrutoraGerenciadorDeMemoria(GerenciadorDeMemoria *GerenciadorDeMemoria,
                                                             int tamPagina, int tamMemoria,
                                                             int tamMaximoProcesso)
 {
+    int numeroPaginas = ceil((float)tamMemoria / (float)tamPagina);
+    GerenciadorDeMemoria->tabelas = (int *)malloc(numeroPaginas * sizeof(TabelaPaginas));
     GerenciadorDeMemoria->tamPagina = tamPagina;
     GerenciadorDeMemoria->tamMemoria = tamMemoria;
     GerenciadorDeMemoria->tamMaximoProcesso = tamMaximoProcesso;
     return GerenciadorDeMemoria;
 }
 
+int LinkarTabelaComMemoria(TabelaPaginas* tabela) {
+    for (int i = 0; i < sizeof(tabela->paginas); i++) {
+        for (int j = 0; j < sizeof(gerenciadorDeMemoria.memoria); j++) {
+            if (!gerenciadorDeMemoria.memoria[j].estaCheio) {
+                tabela->paginas[i] = j;
+            }
+        }
+    }
+}
+
 TabelaPaginas *FuncaoConstrutoraTabela(TabelaPaginas *Objeto, int tProcesso, int tPagina, int idProcesso)
 {
     int numeroPaginas = ceil((float)tProcesso / (float)tPagina);
-    Objeto->paginas = (int *)malloc(numeroPaginas * tPagina * sizeof(BYTE) + sizeof(Objeto));
+    Objeto->paginas = (int *)malloc(numeroPaginas * tPagina * sizeof(char) + sizeof(Objeto));
     Objeto->idTabela = counter;
     Objeto->idProcesso = idProcesso;
     counter = counter++;
     return Objeto;
 }
 
-void PopularPaginasTabela(TabelaPaginas tabela){
-    char randomChar = criarNumeroRandom(255);
-    
+void PopularPaginasTabela(TabelaPaginas* tabela){
+    for (int i = 0; i < sizeof(tabela->paginas); i++) {
+        char randomChar = criarNumeroRandom(255);
+        gerenciadorDeMemoria.memoria[tabela->paginas[i]].valor = randomChar;
+        gerenciadorDeMemoria.memoria[tabela->paginas[i]].estaCheio = true;
+    }
 }
 
 int VisualizarMemoria()
 {
     // Percorre a memória do gerenciador de memória
-    // Exibe o número de bytes alocados em cada página;
-
-    gerenciadorDeMemoria.memoria
-
-    printf("Visualização de tabela:\n\n");
-    printf("ID: %f\n", tabelaAtual.idTabela);
+    // Exibe o número de bytes alocados em cada página
 }
 
 int CriarNumeroRandom(int max)
@@ -75,13 +84,16 @@ int CriarNumeroRandom(int max)
 
 int AdicionarTabela(TabelaPaginas tabela)
 {
-    // adicionar tabela na lista encadeada
-    // atualizar memoria.Atual
+    for (int i = 0; i < sizeof(gerenciadorDeMemoria.tabelas); i++) {
+        if (gerenciadorDeMemoria.tabelas[i].idProcesso == NULL) {
+            // teste para ver se espaço está sendo utilizado
+            gerenciadorDeMemoria.tabelas[i] = tabela;
+        }
+    }
 }
 
 void CriarMemoria(int tamanhoMemoria)
 {
-    // criar array de char[] tamanho sendo igual ao tamanho_memoria
     gerenciadorDeMemoria.memoria = (char *)malloc(tamanhoMemoria * sizeof(char));
 }
 
@@ -99,13 +111,20 @@ int DestruirProcesso(int processId){
     
 }
 
+void MostrarMemoriaLivre() {
+    // printa memoria livre
+}
+
 int CriarProcesso(int tamanhoProcesso, int processId)
 {
+    // RAISE EXCEPTION: tamanhoProcesso maior que tamanho maximo 
     TabelaPaginas *tabela;
-    //cria processo de tamanho tamanhoProcesso
-    tabela = FuncaoConstrutoraTabela(&tabela, tamanhoProcesso, gerenciadorDeMemoria.tamPagina);
-    PopularPaginasTabela(tabela, processId);
-    AdicionarTabela(tabela);
+    tabela = FuncaoConstrutoraTabela(&tabela, tamanhoProcesso, gerenciadorDeMemoria.tamPagina, processId);
+    LinkarTabelaComMemoria(tabela);
+    PopularPaginasTabela(tabela);
+    AdicionarTabela(*tabela);
+    printf("Tamanho do processo %d: %d\n", processId, tamanhoProcesso);
+    MostrarMemoriaLivre();
 }
 
 int main(int argc, char *argv[])
@@ -114,7 +133,7 @@ int main(int argc, char *argv[])
     int tamPagina = argv[1];
     int tamMaxProcesso = argv[2];
     int randTamanhoProcesso;
-    // dar exception se numero_paginas == 0
+    // RAISE EXCEPTION: numero_paginas == 0
     int numeroPaginas = tamMemoria / tamPagina;
 
     FuncaoConstrutoraGerenciadorDeMemoria(&gerenciadorDeMemoria, tamPagina,
@@ -126,13 +145,16 @@ int main(int argc, char *argv[])
     for (int i = 0; i < NUMERO_PROCESSOS; i++)
     {
         randTamanhoProcesso = CriarNumeroRandom(tamMaxProcesso * 2);
-        // criar processo (pega rand_tamanho_max_processo para testar se rand_tamanho_processo > t_max_processo, cria paginas necessarias, alocar paginas necessarias)
         CriarProcesso(randTamanhoProcesso, i);
-
-        // Informa o tamanho do processo em bytes na sua criação
-        // mostrar paginas livres
     }
     VisualizarMemoria(tabela);
 
     return 0;
 }
+
+// TODO
+// Visualizar Memória (Pedro)
+// Destruir processos e desalocar memória (Patrick)
+// Mostrar memoria livre (Franco)
+// Exceptions (Luiz)
+// Criar Páginas (preencher array de tabelaPaginas deixando processId NULL)
