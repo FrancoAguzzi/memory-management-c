@@ -5,7 +5,7 @@
 
 long counter = 0;
 long counterProcessId = 0;
-#define NUMERO_PROCESSOS 10
+#define NUMERO_PROCESSOS 10;
 
 typedef struct
 {
@@ -109,8 +109,23 @@ int AlocarEspaco(char a, int endereco)
     gerenciadorDeMemoria.memoria[endereco].estaCheio = true;
 }
 
-int DestruirProcesso(int processId){
-    
+int DesalocarEspaco(int endereco)
+{
+    gerenciadorDeMemoria.memoria[endereco].estaCheio = false;
+}
+
+int DestruirProcesso(long processId){
+    for (int i = 0; i < sizeof(gerenciadorDeMemoria.tabelas); i++) {
+        if (gerenciadorDeMemoria.tabelas[i].idProcesso == processId) {
+            // teste para ver se espaço está sendo utilizado
+            gerenciadorDeMemoria.tabelas[i].idProcesso = -1;
+            
+            for (int j = 0; j < sizeof(gerenciadorDeMemoria.tabelas[i].paginas); i++){
+                DesalocarEspaco(gerenciadorDeMemoria.tabelas[i].paginas[i]);
+            }
+        }
+        break;
+    }
 }
 
 void MostrarMemoriaLivre() {
