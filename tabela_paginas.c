@@ -10,6 +10,7 @@ long counterProcessId = 0;
 typedef struct
 {
     long idTabela;
+    int numeroPaginas;
     long idProcesso;
     int *paginas;
 } TabelaPaginas;
@@ -50,8 +51,8 @@ int CriarNumeroRandom(int max)
 }
 
 int LinkarTabelaComMemoria(TabelaPaginas* tabela) {
-    for (int i = 0; i < sizeof(tabela->paginas); i++) {
-        for (int j = 0; j < gerenciadorDeMemoria.tamMemoria; j++) {
+    for (int i = 0; i < tabela->numeroPaginas; i++) {
+        for (int j = 0; j < gerenciadorDeMemoria.tamMemoria; j = j + 8) {
             if (!gerenciadorDeMemoria.memoria[j].estaCheio) {
                 tabela->paginas[i] = j;
             }
@@ -64,17 +65,30 @@ TabelaPaginas FuncaoConstrutoraTabela(int tProcesso, int tPagina, int idProcesso
     TabelaPaginas Objeto;
     int numeroPaginas = ceil((float)tProcesso / (float)tPagina);
     Objeto.paginas = (int *)malloc(numeroPaginas * sizeof(int));
+    Objeto.numeroPaginas = numeroPaginas;
     Objeto.idTabela = counter;
     Objeto.idProcesso = idProcesso;
     counter++;
     return Objeto;
 }
 
+int tamanhoMemoriaLivre() {
+    int count = 0;
+    for (int i = 0; i < gerenciadorDeMemoria.tamMemoria; i++) {
+        if (!gerenciadorDeMemoria.memoria[i].estaCheio) {
+            count++;
+        }
+    }
+    return count;
+}
+
 void PopularPaginasTabela(TabelaPaginas* tabela){
-    for (int i = 0; i < sizeof(tabela->paginas); i++) {
-        char randomChar = CriarNumeroRandom(255);
-        gerenciadorDeMemoria.memoria[tabela->paginas[i]].valor = randomChar;
-        gerenciadorDeMemoria.memoria[tabela->paginas[i]].estaCheio = true;
+    for (int i = 0; i < tabela->numeroPaginas; i++) {
+        for (int j = 0; j < gerenciadorDeMemoria.tamPagina; j++) {
+            char randomChar = CriarNumeroRandom(255);
+            gerenciadorDeMemoria.memoria[tabela->paginas[i] + j].estaCheio = true;
+            gerenciadorDeMemoria.memoria[tabela->paginas[i] + j].valor = randomChar;
+        }
     }
 }
 
@@ -86,7 +100,7 @@ int VisualizarMemoria()
 
 int AdicionarTabela(TabelaPaginas tabela)
 {
-    for (int i = 0; i < sizeof(gerenciadorDeMemoria.tabelas); i++) {
+    for (int i = 0; i < (gerenciadorDeMemoria.tamMemoria / gerenciadorDeMemoria.tamPagina); i++) {
         if (gerenciadorDeMemoria.tabelas[i].idProcesso == -1) {
             // teste para ver se espaço está sendo utilizado
             gerenciadorDeMemoria.tabelas[i] = tabela;
@@ -97,12 +111,6 @@ int AdicionarTabela(TabelaPaginas tabela)
 int CriarPaginas(int numeroPaginas, int tamanhoPaginas)
 {
     // criar n paginas (numero_paginas) de tamanho tamanho_paginas (int)
-}
-
-int AlocarEspaco(char a, int endereco)
-{
-    gerenciadorDeMemoria.memoria[endereco].valor = a;
-    gerenciadorDeMemoria.memoria[endereco].estaCheio = true;
 }
 
 int DesalocarEspaco(int endereco)
@@ -136,7 +144,17 @@ void MostrarMemoriaLivre() {
 
 int CriarProcesso(int tamanhoProcesso, int processId)
 {
-    // RAISE EXCEPTION: tamanhoProcesso maior que tamanho maximo
+    // RAISE EXCEPTION
+    if (tamanhoProcesso > gerenciadorDeMemoria.tamMaximoProcesso) {
+        printf("TAMANHO DO PROCESSO (%d bytes) EXCEDE TAMANHO MÁXIMO (%d bytes)\n", tamanhoProcesso, gerenciadorDeMemoria.tamMaximoProcesso);
+        printf("Não foi possível criar processo %d.\n", processId);
+        return 0;
+    }
+    // RAISE EXCEPTION
+    if (!tamanhoMemoriaLivre()) {
+        printf("TAMANHO DE MEMÓRIA LIVRE INSUFICIENTE\n");
+        return 0;
+    }
     printf("Criando processo %d...\n", processId);
     TabelaPaginas tabela = FuncaoConstrutoraTabela(tamanhoProcesso, gerenciadorDeMemoria.tamPagina, processId);
     LinkarTabelaComMemoria(&tabela);
@@ -156,7 +174,13 @@ int main(int argc, char *argv[])
     int tamPagina = atoi(argv[2]);
     int tamMaxProcesso = atoi(argv[3]);
     int randTamanhoProcesso;
-    // RAISE EXCEPTION: numero_paginas == 0
+
+    // RAISE EXCEPTION
+    if (tamPagina > tamMemoria) {
+        printf("TAMANHO DA PÁGINA (%d bytes) EXCEDE TAMANHO DA MEMÓRIA (%d bytes)\n", tamPagina, tamMemoria);
+        printf("Não foi possível criar páginas.");
+        return 0;
+    }
     int numeroPaginas = tamMemoria / tamPagina;
 
     FuncaoConstrutoraGerenciadorDeMemoria(&gerenciadorDeMemoria, tamPagina,
