@@ -52,7 +52,7 @@ int CriarNumeroRandom(int max)
 
 int LinkarTabelaComMemoria(TabelaPaginas* tabela) {
     for (int i = 0; i < tabela->numeroPaginas; i++) {
-        for (int j = 0; j < gerenciadorDeMemoria.tamMemoria; j = j + 8) {
+        for (int j = 0; j < gerenciadorDeMemoria.tamMemoria; j = j + gerenciadorDeMemoria.tamPagina) {
             if (!gerenciadorDeMemoria.memoria[j].estaCheio) {
                 tabela->paginas[i] = j;
             }
@@ -72,9 +72,9 @@ TabelaPaginas FuncaoConstrutoraTabela(int tProcesso, int tPagina, int idProcesso
     return Objeto;
 }
 
-int tamanhoMemoriaLivre() {
+int NumeroPaginasLivres() {
     int count = 0;
-    for (int i = 0; i < gerenciadorDeMemoria.tamMemoria; i++) {
+    for (int i = 0; i < gerenciadorDeMemoria.tamMemoria; i = i + gerenciadorDeMemoria.tamPagina) {
         if (!gerenciadorDeMemoria.memoria[i].estaCheio) {
             count++;
         }
@@ -144,6 +144,7 @@ void MostrarMemoriaLivre() {
 
 int CriarProcesso(int tamanhoProcesso, int processId)
 {
+    printf("Criando processo %d...\n", processId);
     // RAISE EXCEPTION
     if (tamanhoProcesso > gerenciadorDeMemoria.tamMaximoProcesso) {
         printf("TAMANHO DO PROCESSO (%d bytes) EXCEDE TAMANHO MÁXIMO (%d bytes)\n", tamanhoProcesso, gerenciadorDeMemoria.tamMaximoProcesso);
@@ -151,11 +152,10 @@ int CriarProcesso(int tamanhoProcesso, int processId)
         return 0;
     }
     // RAISE EXCEPTION
-    if (!tamanhoMemoriaLivre()) {
-        printf("TAMANHO DE MEMÓRIA LIVRE INSUFICIENTE\n");
+    if (NumeroPaginasLivres() < ceil((float)tamanhoProcesso / (float)gerenciadorDeMemoria.tamPagina)) {
+        printf("TAMANHO DE MEMÓRIA LIVRE INSUFICIENTE PARA CRIAR CRIAR PROCESSO %d\n", processId);
         return 0;
     }
-    printf("Criando processo %d...\n", processId);
     TabelaPaginas tabela = FuncaoConstrutoraTabela(tamanhoProcesso, gerenciadorDeMemoria.tamPagina, processId);
     LinkarTabelaComMemoria(&tabela);
     PopularPaginasTabela(&tabela);
