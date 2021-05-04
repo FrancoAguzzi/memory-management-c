@@ -36,7 +36,7 @@ void FuncaoConstrutoraGerenciadorDeMemoria(GerenciadorDeMemoria *GerenciadorDeMe
                                                             int tamPagina, int tamMemoria,
                                                             int tamMaximoProcesso)
 {
-    int numeroPaginas = tamMemoria / tamPagina;
+    int numeroPaginas = ceil((float)tamMemoria / (float)tamPagina);
     GerenciadorDeMemoria->tabelas = (TabelaPaginas *)malloc(numeroPaginas * sizeof(TabelaPaginas));
     GerenciadorDeMemoria->tamPagina = tamPagina;
     GerenciadorDeMemoria->tamMemoria = tamMemoria;
@@ -49,7 +49,6 @@ int CriarNumeroRandom(int max)
 }
 
 int LinkarTabelaComMemoria(TabelaPaginas* tabela) {
-    printf("%d\n", sizeof(tabela->paginas));
     for (int i = 0; i < sizeof(tabela->paginas); i++) {
         for (int j = 0; j < sizeof(gerenciadorDeMemoria.memoria); j++) {
             if (!gerenciadorDeMemoria.memoria[j].estaCheio) {
@@ -63,11 +62,9 @@ TabelaPaginas FuncaoConstrutoraTabela(int tProcesso, int tPagina, int idProcesso
 {
     TabelaPaginas Objeto;
     // int numeroPaginas = ceil((float)tProcesso / (float)tPagina);
-    Objeto.paginas = (int *)malloc(tProcesso * tPagina * sizeof(int));
-    printf("Tam proc %d pag %d pags %d\n", tProcesso, tPagina, sizeof(Objeto.paginas));
+    Objeto.paginas = (int *)malloc(tProcesso * sizeof(int));
     Objeto.idTabela = counter;
     Objeto.idProcesso = idProcesso;
-    printf("Tam proc %d pag %d pags %d\n", tProcesso, tPagina, sizeof(Objeto.paginas));
     counter++;
     return Objeto;
 }
@@ -109,6 +106,7 @@ int CriarPaginas(int numeroPaginas, int tamanhoPaginas)
 int AlocarEspaco(char a, int endereco)
 {
     gerenciadorDeMemoria.memoria[endereco].valor = a;
+    gerenciadorDeMemoria.memoria[endereco].estaCheio = true;
 }
 
 int DestruirProcesso(int processId){
