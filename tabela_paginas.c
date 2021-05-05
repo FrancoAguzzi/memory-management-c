@@ -108,6 +108,7 @@ int AdicionarTabela(TabelaPaginas tabela)
         if (gerenciadorDeMemoria.tabelas[i].idProcesso == -1) {
             // teste para ver se espaço está sendo utilizado
             gerenciadorDeMemoria.tabelas[i] = tabela;
+            break;
         }
     }
 }
@@ -119,20 +120,19 @@ int CriarPaginas(int numeroPaginas, int tamanhoPaginas)
 
 int DesalocarEspaco(int endereco)
 {
-    printf("Whuu\n");
     gerenciadorDeMemoria.memoria[endereco].estaCheio = false;
 }
 
 int DestruirProcesso(long processId){
     for (int i = 0; i < (gerenciadorDeMemoria.tamMemoria / gerenciadorDeMemoria.tamPagina); i++) {
-            printf("Whoo %ld \n", gerenciadorDeMemoria.tabelas[i].idProcesso);
         if (gerenciadorDeMemoria.tabelas[i].idProcesso == processId) {
             // teste para ver se espaço está sendo utilizado
             gerenciadorDeMemoria.tabelas[i].idProcesso = -1;
             
-            for (int j = 0; j < gerenciadorDeMemoria.tabelas[i].numeroPaginas; i++){
-                DesalocarEspaco(gerenciadorDeMemoria.tabelas[i].paginas[i]);
-                printf("Whii\n");
+            for (int j = 0; j < gerenciadorDeMemoria.tabelas[i].numeroPaginas; j++){
+                for (int k = 0; k < gerenciadorDeMemoria.tamPagina; k++) {
+                    DesalocarEspaco(gerenciadorDeMemoria.tabelas[i].paginas[j] + k);
+                }
             }
             break;
         }
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
 
     for (long i = 0; i < NUMERO_PROCESSOS; i++)
     {
-        randTamanhoProcesso = CriarNumeroRandom(tamMaxProcesso * 2);
+        randTamanhoProcesso = CriarNumeroRandom(tamMaxProcesso);
         CriarProcesso(randTamanhoProcesso, i + 1);
     }
 
@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
     {
         printf("Destruindo processo %ld\n", i + 1);
         DestruirProcesso(i + 1);
-        // MostrarMemoriaLivre();
+        MostrarMemoriaLivre();
     }
 
     return 0;

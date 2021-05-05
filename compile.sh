@@ -1,1 +1,1 @@
-gcc tabela_paginas.c -lm -o main && ./main
+gcc tabela_paginas.c -lm -o main && ./main $@
