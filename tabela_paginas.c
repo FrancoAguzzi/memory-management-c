@@ -5,7 +5,6 @@
 #include <time.h>
 
 long counterTabelaId = 0;
-long counterProcessId = 0;
 #define NUMERO_PROCESSOS 10
 
 typedef struct
