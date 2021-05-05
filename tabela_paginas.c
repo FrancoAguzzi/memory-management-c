@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 
-long counter = 0;
+long counterTabelaId = 0;
 long counterProcessId = 0;
 #define NUMERO_PROCESSOS 10
 
@@ -73,10 +73,10 @@ TabelaPaginas FuncaoConstrutoraTabela(int tProcesso, int tPagina, long idProcess
     int numeroPaginas = ceil((float)tProcesso / (float)tPagina);
     Objeto.paginas = (int *)malloc(numeroPaginas * sizeof(int));
     Objeto.numeroPaginas = numeroPaginas;
-    Objeto.idTabela = counter;
+    Objeto.idTabela = counterTabelaId;
     Objeto.idProcesso = idProcesso;
     gerenciadorDeMemoria.numeroTabelas++;
-    counter++;
+    counterTabelaId++;
     return Objeto;
 }
 
@@ -110,7 +110,7 @@ int VisualizarMemoria()
     printf("Processo \t");
     printf("Tabela \t\t");
     printf("Memória\n");
-    for (int i = 0; i < counter; i++)
+    for (int i = 0; i < counterTabelaId; i++)
     {
         for (int j = 0; j < gerenciadorDeMemoria.tabelas[i].numeroPaginas; j++){
             for (int k = 0; k < gerenciadorDeMemoria.tamPagina; k++) {
@@ -128,7 +128,7 @@ int VisualizarTabelaPaginas(int procId)
     printf("Processo \t");
     printf("Tabela \t\t");
     printf("Memória\n");
-    for (int i = 0; i < counter; i++)
+    for (int i = 0; i < counterTabelaId; i++)
     {
         if (gerenciadorDeMemoria.tabelas[i].idProcesso == procId){
             for (int j = 0; j < gerenciadorDeMemoria.tabelas[i].numeroPaginas; j++){
@@ -222,7 +222,6 @@ int main(int argc, char *argv[])
         printf("Não foi possível criar páginas.");
         return 0;
     }
-    int numeroPaginas = tamMemoria / tamPagina;
 
     FuncaoConstrutoraGerenciadorDeMemoria(&gerenciadorDeMemoria, tamPagina,
                                           tamMemoria, tamMaxProcesso);
