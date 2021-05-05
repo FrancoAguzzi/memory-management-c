@@ -74,7 +74,6 @@ TabelaPaginas FuncaoConstrutoraTabela(int tProcesso, int tPagina, long idProcess
     Objeto.numeroPaginas = numeroPaginas;
     Objeto.idTabela = counterTabelaId;
     Objeto.idProcesso = idProcesso;
-    gerenciadorDeMemoria.numeroTabelas++;
     counterTabelaId++;
     return Objeto;
 }
@@ -149,6 +148,7 @@ int AdicionarTabela(TabelaPaginas tabela)
             break;
         }
     }
+    gerenciadorDeMemoria.numeroTabelas++;
 }
 
 int DesalocarEspaco(int endereco)
@@ -159,6 +159,7 @@ int DesalocarEspaco(int endereco)
 int DestruirProcesso(long processId){
     for (int i = 0; i < (gerenciadorDeMemoria.tamMemoria / gerenciadorDeMemoria.tamPagina); i++) {
         if (gerenciadorDeMemoria.tabelas[i].idProcesso == processId) {
+            printf("Destruindo processo %ld\n", processId);
             gerenciadorDeMemoria.tabelas[i].idProcesso = -1;
             
             for (int j = 0; j < gerenciadorDeMemoria.tabelas[i].numeroPaginas; j++){
@@ -166,6 +167,7 @@ int DestruirProcesso(long processId){
                     DesalocarEspaco(gerenciadorDeMemoria.tabelas[i].paginas[j] + k);
                 }
             }
+            MostrarMemoriaLivre();
             break;
         }
     }
@@ -192,7 +194,7 @@ int CriarProcesso(int tamanhoProcesso, long processId)
     }
     // RAISE EXCEPTION
     if (NumeroPaginasLivres() < ceil((float)tamanhoProcesso / (float)gerenciadorDeMemoria.tamPagina)) {
-        printf("TAMANHO DE MEMÓRIA LIVRE INSUFICIENTE PARA CRIAR CRIAR PROCESSO %ld\n", processId);
+        printf("TAMANHO DE MEMÓRIA LIVRE INSUFICIENTE PARA CRIAR PROCESSO %ld\n", processId);
         return 0;
     }
     TabelaPaginas tabela = FuncaoConstrutoraTabela(tamanhoProcesso, gerenciadorDeMemoria.tamPagina, processId);
@@ -239,9 +241,7 @@ int main(int argc, char *argv[])
     printf("Destruindo processos...\n");
     for (long i = 0; i < NUMERO_PROCESSOS; i++)
     {
-        printf("Destruindo processo %ld\n", i + 1);
         DestruirProcesso(i + 1);
-        MostrarMemoriaLivre();
     }
 
     return 0;
