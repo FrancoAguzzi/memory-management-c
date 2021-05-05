@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
+#include <time.h>
 
 long counter = 0;
 long counterProcessId = 0;
-#define NUMERO_PROCESSOS 5
+#define NUMERO_PROCESSOS 10
 
 typedef struct
 {
@@ -18,7 +19,7 @@ typedef struct
 typedef struct 
 {
     bool estaCheio;
-    char valor;
+    unsigned char valor;
 } Byte;
 
 typedef struct
@@ -89,12 +90,13 @@ int NumeroPaginasLivres() {
 void PopularPaginasTabela(TabelaPaginas* tabela, int tamanhoProcesso){
     for (int i = 0; i < tabela->numeroPaginas; i++) {
         for (int j = 0; j < gerenciadorDeMemoria.tamPagina; j++) {
-            char randomChar = CriarNumeroRandom(255);
+            char randomChar = CriarNumeroRandom(16);
             gerenciadorDeMemoria.memoria[tabela->paginas[i] + j].estaCheio = true;
-            if (i < tamanhoProcesso) {
+            if (j < tamanhoProcesso) {
                 gerenciadorDeMemoria.memoria[tabela->paginas[i] + j].valor = randomChar;
+                printf("%d: %d\n", j, tamanhoProcesso);
             } else {
-                gerenciadorDeMemoria.memoria[tabela->paginas[i] + j].valor = -1;
+                gerenciadorDeMemoria.memoria[tabela->paginas[i] + j].valor = 0;
             }
         }
     }
@@ -104,7 +106,7 @@ int VisualizarMemoria()
 {
     printf("\nMemória:\n");
     for (int i = 0; i < gerenciadorDeMemoria.tamMemoria; i++) {
-        printf("|%d| \n", &gerenciadorDeMemoria.memoria[i].valor);
+        printf("|%u| \n", gerenciadorDeMemoria.memoria[i].valor);
     }
     printf("\n");
 }
@@ -120,19 +122,16 @@ int AdicionarTabela(TabelaPaginas tabela)
 
 int DesalocarEspaco(int endereco)
 {
-    printf("Whuu\n");
     gerenciadorDeMemoria.memoria[endereco].estaCheio = false;
 }
 
 int DestruirProcesso(long processId){
     for (int i = 0; i < (gerenciadorDeMemoria.tamMemoria / gerenciadorDeMemoria.tamPagina); i++) {
-            printf("Whoo %ld \n", gerenciadorDeMemoria.tabelas[i].idProcesso);
         if (gerenciadorDeMemoria.tabelas[i].idProcesso == processId) {
             gerenciadorDeMemoria.tabelas[i].idProcesso = -1;
             
             for (int j = 0; j < gerenciadorDeMemoria.tabelas[i].numeroPaginas; i++){
                 DesalocarEspaco(gerenciadorDeMemoria.tabelas[i].paginas[i]);
-                printf("Whii\n");
             }
             break;
         }
@@ -151,16 +150,16 @@ void MostrarMemoriaLivre() {
 
 int CriarProcesso(int tamanhoProcesso, long processId)
 {
-    printf("Criando processo %d...\n", processId);
+    printf("Criando processo %ld...\n", processId);
     // RAISE EXCEPTION
     if (tamanhoProcesso > gerenciadorDeMemoria.tamMaximoProcesso) {
         printf("TAMANHO DO PROCESSO (%d bytes) EXCEDE TAMANHO MÁXIMO (%d bytes)\n", tamanhoProcesso, gerenciadorDeMemoria.tamMaximoProcesso);
-        printf("Não foi possível criar processo %d.\n", processId);
+        printf("Não foi possível criar processo %ld.\n", processId);
         return 0;
     }
     // RAISE EXCEPTION
     if (NumeroPaginasLivres() < ceil((float)tamanhoProcesso / (float)gerenciadorDeMemoria.tamPagina)) {
-        printf("TAMANHO DE MEMÓRIA LIVRE INSUFICIENTE PARA CRIAR CRIAR PROCESSO %d\n", processId);
+        printf("TAMANHO DE MEMÓRIA LIVRE INSUFICIENTE PARA CRIAR CRIAR PROCESSO %ld\n", processId);
         return 0;
     }
     TabelaPaginas tabela = FuncaoConstrutoraTabela(tamanhoProcesso, gerenciadorDeMemoria.tamPagina, processId);
@@ -172,6 +171,7 @@ int CriarProcesso(int tamanhoProcesso, long processId)
 
 int main(int argc, char *argv[])
 {
+    srand(time(NULL));
     if(argc != 4) {
         printf("Uso: %s <tamanho memoria> <tamanho pagina> <tamanho processo>\n", argv[0]);
         exit(1);
@@ -206,12 +206,10 @@ int main(int argc, char *argv[])
     {
         printf("Destruindo processo %ld\n", i + 1);
         DestruirProcesso(i + 1);
-        // MostrarMemoriaLivre();
     }
 
     return 0;
 }
 
 // TODO
-// Visualizar Memória (Pedro)
 // Destruir processos e desalocar memória (Patrick)
